@@ -21,7 +21,7 @@ jobs:
       - name: SAST (semgrep)
         uses: returntocorp/semgrep-action@v1
         with:
-          config: p/security-audit
+          config: .semgrep.yml
 
   deploy:
     needs: security_checks
