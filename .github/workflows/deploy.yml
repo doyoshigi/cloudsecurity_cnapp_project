@@ -1,0 +1,45 @@
+name: deploy-to-ec2-with-ssm
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ap-northeast-2
+
+      - name: Send deploy command via SSM
+        id: ssm
+        run: |
+          set -e
+          CMD_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
+            --parameters 'commands=[
+              "set -e",
+              "cd /opt/demo-site/cloudsecurity_cnapp_project",
+              "git pull --ff-only",
+              "sudo nginx -t",
+              "sudo systemctl reload nginx"
+            ]' \
+            --query "Command.CommandId" --output text)
+          echo "command_id=$CMD_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for command result
+        run: |
+          set -e
+          aws ssm get-command-invocation \
+            --command-id "${{ steps.ssm.outputs.command_id }}" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+            --query "Status,StandardOutputContent,StandardErrorContent" \
+            --output text
