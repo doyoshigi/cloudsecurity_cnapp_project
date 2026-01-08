@@ -1,0 +1,10 @@
+rules:
+  - id: html-inline-innerhtml-test
+    message: "Test rule: HTML 안에서 innerHTML 사용 감지"
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - "*.html"
+        - "**/*.html"
+    pattern-regex: "innerHTML\\s*="
