@@ -1,6 +1,6 @@
 rules:
-  - id: html-inline-innerhtml-test
-    message: "Test rule: HTML 안에서 innerHTML 사용 감지"
+  - id: block-innerhtml-in-html
+    message: "배포 차단: HTML 안에서 innerHTML 사용 감지"
     severity: ERROR
     languages: [generic]
     paths:
@@ -8,3 +8,14 @@ rules:
         - "*.html"
         - "**/*.html"
     pattern-regex: "innerHTML\\s*="
+
+  - id: block-innerhtml-in-js
+    message: "배포 차단: JS에서 innerHTML 사용 감지"
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "*.js"
+        - "**/*.js"
+    patterns:
+      - pattern: $EL.innerHTML = $X
